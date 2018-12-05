@@ -1,0 +1,91 @@
+---
+title: 'Multiple Comparisons: Vibrations Data'
+author: "NKN"
+date: "Dec 5, 2018"
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read Motor.csv data
+
+Reading data, converting Brand to a factor, and some housekeeping.
+
+```{r}
+library(readxl)
+library("multcomp")
+motor <- read.csv("../../data/csv/motor.csv")
+motor$vib <- motor$vibration  
+motor$Brand <- as.factor(motor$Brand)
+```
+
+## Compute ANOVA, Individual Confidence Intervals 
+
+```{r}
+attach(motor)
+motor.aov <- aov(vib~Brand)
+motor.aov.glht <- glht(motor.aov, linfct = mcp(Brand = "Tukey"))
+summary(motor.aov.glht,test=univariate())
+plot(motor.aov.glht)
+detach(motor)
+```
+
+## Compute Simultaneous Confidence Intervals
+
+The following lines can be used to compute the p-values
+for testing the equality pairwise means using different
+methods of adjusting the p-values. 
+
+
+```{r}
+summary(motor.aov.glht)
+summary(motor.aov.glht,test=adjusted("Shaffer"))
+summary(motor.aov.glht,test=adjusted("bonferroni"))
+```
+
+## Undjusted CIs for pairwise differences
+
+The un-adjusted confidence intervals for pairwise
+differences of means are obtained below.
+
+```{r}
+confint(motor.aov.glht,level=0.95,calpha = univariate_calpha())
+```
+
+## Other contrasts
+
+We can look at the contrasts that compare different brands to a reference brand as follows:
+
+```{r}
+motor.aov.glht.Dun <- glht(motor.aov, linfct = mcp(Brand = "Dunnett"))
+confint(motor.aov.glht.Dun,level=0.95,calpha = univariate_calpha())
+summary(motor.aov.glht.Dun)
+```
+
+Suppose we want to compare abrands 1-4 to 5, instead of the above. Then, we need to change the reflevel. This can be done as follows. 
+
+```{r}
+motor$Brand <- relevel(motor$Brand, ref="5")
+levels(motor$Brand) 
+# now "5" becomes the reference level -- note that 5 is listed first
+```
+
+## Using Brand 5 as reference
+
+Now the same code as before will compare the brands to the new reference level 5.
+
+```{r}
+motor$Brand <- relevel(motor$Brand, ref="5")
+levels(motor$Brand) 
+motor.aov2 <- aov(vib~Brand,data=motor)
+summary(motor.aov2)
+motor.aov.glht.Dun2 <- glht(motor.aov2, linfct = mcp(Brand = "Dunnett"))
+confint(motor.aov.glht.Dun2,level=0.95,calpha = univariate_calpha())
+summary(motor.aov.glht.Dun2)
+```
+
+
