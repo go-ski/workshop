@@ -1,0 +1,118 @@
+---
+title: "Essential Rcpp"
+output:
+  html_document:
+    df_print: paged
+    number_sections: yes
+geometry: left=0.5cm,right=0.5cm,top=0.5cm,bottom=1.5cm
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+``` {r}
+library(Rcpp)
+```
+
+Hello world.
+``` {r}
+sourceCpp(code = '
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+Rcpp::String hello(const Rcpp::String& name)
+{
+	Rcpp::String msg;
+	msg += "Hello ";
+	msg += name;
+	msg += "!";
+	return msg;
+}
+')
+
+hello("Andrew")
+```
+
+
+Add two doubles.
+``` {r, error=TRUE}
+sourceCpp(code = '
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+double add2(double x, double y)
+{
+	return x + y;
+}
+')
+
+add2(4, 5)
+add2(4, as.integer(5))
+add2(4, 5, 6)
+```
+
+Sort a NumericVector using STL set.
+
+``` {r}
+sourceCpp(code = '
+#include <Rcpp.h>
+#include <set>
+
+// [[Rcpp::export]]
+Rcpp::NumericVector sort(const Rcpp::NumericVector& x)
+{
+	std::set<double> s(x.begin(), x.end());
+	Rcpp::NumericVector t(s.begin(), s.end());
+	return t;
+}
+')
+
+sort(c(3,1,2,4,-3,-1))
+sort(as.integer(c(3,1,2,4,-3,-1)))	
+sort(c(1,1,-1,-1,3,1))
+```
+
+Sort a NumericVector using STL sort.
+``` {r}
+sourceCpp(code = '
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+Rcpp::NumericVector sort(const Rcpp::NumericVector& x)
+{
+	Rcpp::NumericVector z = x;
+	std::sort(z.begin(), z.end());
+	return z;
+}
+')
+
+sort(c(1,1,-1,-1,3,1))
+```
+
+Matrix exponent using RcppArmadillo.
+``` {r, error=TRUE}
+sourceCpp(code = '
+// [[Rcpp::depends("RcppArmadillo")]]
+#include <RcppArmadillo.h>
+
+// [[Rcpp::export]]
+arma::mat matexp(const arma::mat& X, int k)
+{
+	arma::mat Y = arma::eye(size(X));
+	for (int i = 0; i < k; i++) {
+		Y *= X;
+	}
+	return Y;
+}
+')
+
+M0 <- diag(1, 3)
+matexp(M0, 10)
+
+M1 <- matrix(c(1,1,1,1), 2, 2)
+matexp(M1, 5)
+
+M2 <- matrix(c(1,1,1,1,1,1), 3, 2)
+matexp(M2, 5)
+```
