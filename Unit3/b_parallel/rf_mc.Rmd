@@ -2,12 +2,8 @@
 title: "rf_mc"
 author: "GO"
 output:
-  pdf_document:
-    toc: yes
   html_document:
-    number_sections: yes
     toc: yes
-    toc_float: yes
 ---
 
 ```{r setup, include=FALSE}
